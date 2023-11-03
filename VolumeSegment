@@ -1,0 +1,58 @@
+with base_loads AS (
+    select l.carrier_uuid
+        ,l.carrier_name
+        ,count (distinct uuid) as total_loads
+    from XXX.XXX l
+    join XXX.XXX as c
+    on l.carrier_uuid = c.carrier_uuid
+    where 1=1
+    AND carrier_status = 'ACTIVE'
+    AND load_status_category = 'BOOKED'
+    and date(source_start_utc_time) between date('2021-06-30') and date('2022-10-01')
+    group by 1, 2
+)
+, carrier_data as (
+    select carrier_uuid
+        ,carrier_name
+        ,fleet_size
+        ,home_dat_region
+    from XXX.XXX
+    where 1=1
+    and carrier_status = 'ACTIVE'
+)    
+, final as (
+    select b.carrier_uuid
+        ,b.carrier_name
+        ,b.total_loads
+        ,d.fleet_size
+        ,d.home_dat_region
+        ,case 
+            when total_loads >= 50 and total_loads < 100 then '50 to 100'
+            when total_loads >= 100 and total_loads < 150 then '100 to 150'
+            when total_loads >= 150 and total_loads < 200 then '150 to 200'
+            when total_loads >= 200 and total_loads < 250 then '200 to 250'
+    else 'N/A' end carrier_groupings
+
+from base_loads as b
+    inner join carrier_data as d
+    on b.carrier_uuid = d.carrier_uuid
+    where 1=1
+    and total_loads >= 50 
+    and total_loads <= 250 
+    group by 1, 2, 3, 4, 5
+
+)    
+
+
+
+select
+
+    carrier_groupings
+
+    ,sum(total_loads) total_loads 
+
+    ,count(distinct carrier_uuid) carriers
+
+from final      
+
+group by 1 
