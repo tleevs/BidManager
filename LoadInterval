@@ -1,0 +1,37 @@
+WITH CTE_ONE as(
+SELECT
+     carrier_name
+    ,carrier_uuid
+    ,date_trunc('year',source_start_utc_time) as load_year
+    ,source_start_utc_time
+    ,uuid
+from XXX.XXX
+    where extract(year from source_start_utc_time) = 2021
+    group by 1, 2, 3, 4, 5
+)
+
+,
+ CTE_TWO AS (
+SELECT
+     l.carrier_name
+    ,l.carrier_uuid
+    ,MAX_BY(l.source_start_utc_time, l.source_start_utc_time) as last_pu_load_date
+    ,MIN_BY(l.source_start_utc_time, l.source_start_utc_time) as first_pu_load_date
+    ,count (distinct l.uuid) as load_count
+from XXX.XXX as l
+inner join CTE_ONE c1 on l.uuid = c1.uuid
+where 1=1 
+group by 1, 2
+order by last_pu_load_date desc
+)
+select
+     carrier_name
+    ,carrier_uuid
+    ,first_pu_load_date
+    ,last_pu_load_date
+    ,load_count
+    ,DATE_DIFF('day',first_pu_load_date,last_pu_load_date) days
+    ,DATE_DIFF('hour',first_pu_load_date,last_pu_load_date) days
+    ,DATE_DIFF('minute',first_pu_load_date,last_pu_load_date) days
+from CTE_Two
+where 1=1 
