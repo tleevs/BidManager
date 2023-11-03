@@ -1,0 +1,64 @@
+with carrier_bids as (select actor_user_uuid as cb_actor_user_uuid
+    , load_uuid as cb_load_uuid
+    , bid_uuid as cb_bid_uuid
+    , bid_price as cb_bid_price
+    , source_city as cb_source_city
+    , source_state as cb_source_state
+    , destination_city as cb_destination_city
+    , destination_state as cb_destination_state
+    , bid_submission_at_utc as cb_bid_time_utc
+    , source_start_utc_time as cb_source_start_utc_time
+
+from XXX.XXX
+where 1=1 
+and bid_submission_at_utc >= now() - interval '90' day
+
+),
+
+bids_and_carrier as(
+select 
+cb_actor_user_uuid
+    ,cb_load_uuid
+    ,cb_bid_price
+    ,cb_bid_time_utc
+    ,cb_source_start_utc_time
+    ,cb_source_city
+    ,cb_source_state
+    ,cb_destination_city
+    ,cb_destination_state
+    ,d.carrier_uuid as d_carrier_uuid
+    ,cb_bid_uuid
+
+from carrier_bids 
+left join XXX.XXX as d 
+on d.user_uuid = xxx.cb_actor_user_uuid
+where 1=1
+)
+,
+
+carrier_bids_filter as (
+
+select d.dot_number
+    ,d.sfdc_account_owner   
+    ,d.carrier_uuid
+    ,d.carrier_name
+    ,d.carrier_status
+    ,c.*
+
+from bids_and_carrier as c
+left join XXX.XXX as d 
+on d.carrier_uuid = c.d_carrier_uuid
+where 1=1 
+and cb_source_start_utc_time >= now()
+)
+
+select a.external_load_id
+    ,a.source_start_utc_time
+    ,a.load_status
+    ,f.*
+from carrier_bids_filter as f
+left join XXX.XXX as a 
+on a.uuid = f.cb_load_uuid
+where 1=1 
+and contains(tags_applied, 'LOAD__LONGHAUL_SPIFF')
+and load_status = 'LOAD_AVAILABLE'
