@@ -1,0 +1,47 @@
+with lane_owner as 
+(select 
+    distinct(lane_uuid)
+    ,carrier_uuid
+    ,commitment_period_starts_at
+    ,lane_external_id
+    ,source_city
+    ,source_state
+    ,destination_city
+    ,destination_state
+    ,commitment_uuid
+    ,category
+    ,submitted_by_uuid
+
+from XX.XX
+    where 1=1
+    and category != 'SECONDARY’
+    and submitted_by_uuid = ‘XXXX’
+)
+ ,   
+
+cc_load as
+(select 
+    uuid
+    ,commitment_uuid
+    ,source_start_utc_time
+from XX.XX
+where 1=1
+and datestr is not null
+)
+
+select
+    lane_external_id as LANE_ID
+    ,category
+    ,commitment_period_starts_at
+    ,source_city as PICKUP_CITY
+    ,source_state
+    ,destination_city as DELIVER_CITY
+    ,destination_state
+    ,source_start_utc_time
+    ,uuid as LOAD_UUID
+
+from lane_owner as l
+inner join cc_load as c
+on l.commitment_uuid = c.commitment_uuid
+where 1=1
+AND EXTRACT (YEAR FROM commitment_period_starts_at) = 2023
